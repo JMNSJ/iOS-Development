@@ -4,7 +4,7 @@ import Combine
 struct ContentView: View {
 
     @State private var score = 0
-    @State private var timeRemaining = 30
+    @State private var timeRemaining = 10
     @State private var gameOver = false
 
     let timer = Timer.publish(
@@ -17,7 +17,7 @@ struct ContentView: View {
 
         VStack {
 
-            // Score in the top
+            // Score in the top UI
             Text("Score: \(score)")
                 .font(.largeTitle)
                 .fontWeight(.bold)
@@ -25,7 +25,7 @@ struct ContentView: View {
 
             Spacer()
 
-            // Go Button
+            // Go Button Logic
             Button(action: {
 
                 if !gameOver {
@@ -33,7 +33,7 @@ struct ContentView: View {
                 }
 
             }) {
-
+            // Button UI
                 Text("Go")
                     .font(.title)
                     .fontWeight(.bold)
@@ -62,7 +62,7 @@ struct ContentView: View {
 
                     Button("Let's Play Again!") {
                         score = 0
-                        timeRemaining = 30
+                        timeRemaining = 10
                         gameOver = false
                     }
                     .padding()
