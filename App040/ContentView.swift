@@ -17,7 +17,7 @@ struct ContentView: View {
 
         VStack {
 
-            // Score
+            // Score in the top
             Text("Score: \(score)")
                 .font(.largeTitle)
                 .fontWeight(.bold)
@@ -25,7 +25,7 @@ struct ContentView: View {
 
             Spacer()
 
-            // Tap Button
+            // Go Button
             Button(action: {
 
                 if !gameOver {
@@ -34,12 +34,12 @@ struct ContentView: View {
 
             }) {
 
-                Text("TAP")
+                Text("Go")
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .frame(width: 180, height: 180)
-                    .background(Color.blue)
+                    .background(Color.orange.opacity(0.75))
                     .clipShape(Circle())
             }
             .disabled(gameOver)
@@ -52,11 +52,15 @@ struct ContentView: View {
                     Text("Game Over!")
                         .font(.title)
                         .foregroundColor(.red)
+                    
+                    Text("Good Try! Start Another Game")
+                        .font(.title)
+                        .foregroundColor(.purple)
 
                     Text("Final Score: \(score)")
                         .font(.headline)
 
-                    Button("Restart Game") {
+                    Button("Let's Play Again!") {
                         score = 0
                         timeRemaining = 30
                         gameOver = false
