@@ -2,12 +2,14 @@ import SwiftUI
 
 struct LightItUpView: View {
     
+    // MARK: - Grid
     private let columns = [
         GridItem(.flexible()),
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
     
+    // MARK: - Game State
     @State private var activeCard: Int = Int.random(in: 0..<3)
     @State private var score: Int = 0
     @State private var timeRemaining: Int = 15
@@ -16,6 +18,9 @@ struct LightItUpView: View {
     @State private var cardTimer: Timer?
     @State private var gameTimer: Timer?
     
+    // MARK: - HIGH SCORE (NEW)
+    @AppStorage("lightItUpHighScore") private var highScore = 0
+    
     var body: some View {
         VStack(spacing: 30) {
             
@@ -23,9 +28,16 @@ struct LightItUpView: View {
                 .font(.largeTitle)
                 .bold()
             
+            // SCORE SECTION
             HStack {
-                Text("Score: \(score)")
-                    .font(.title2)
+                VStack(alignment: .leading) {
+                    Text("Score: \(score)")
+                        .font(.title2)
+                    
+                    Text("High Score: \(highScore)")
+                        .font(.subheadline)
+                        .foregroundColor(.green)
+                }
                 
                 Spacer()
                 
@@ -35,16 +47,15 @@ struct LightItUpView: View {
             }
             .padding(.horizontal)
             
+            // GRID
             LazyVGrid(columns: columns, spacing: 20) {
                 
                 ForEach(0..<3, id: \.self) { index in
                     
-                    CardView(
-                        isActive: activeCard == index
-                    )
-                    .onTapGesture {
-                        handleTap(index)
-                    }
+                    CardView(isActive: activeCard == index)
+                        .onTapGesture {
+                            handleTap(index)
+                        }
                 }
             }
             .padding()
@@ -69,7 +80,7 @@ struct LightItUpView: View {
     }
 }
 
-// MARK: - Game Logic
+// MARK: - GAME LOGIC
 
 extension LightItUpView {
     
@@ -90,9 +101,9 @@ extension LightItUpView {
         
         cardTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             
-            if gameOver { return }
+            guard !gameOver else { return }
             
-            // Missed active card
+            // penalty for missing card
             score -= 1
             
             activeCard = Int.random(in: 0..<3)
@@ -117,13 +128,9 @@ extension LightItUpView {
         guard !gameOver else { return }
         
         if index == activeCard {
-            
             score += 5
-            
             activeCard = Int.random(in: 0..<3)
-            
         } else {
-            
             score -= 2
         }
     }
@@ -132,15 +139,18 @@ extension LightItUpView {
         
         gameOver = true
         stopTimers()
+        
+        // HIGH SCORE UPDATE
+        if score > highScore {
+            highScore = score
+        }
     }
     
     private func restartGame() {
-        
         startGame()
     }
     
     private func stopTimers() {
-        
         cardTimer?.invalidate()
         cardTimer = nil
         
