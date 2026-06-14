@@ -96,10 +96,10 @@ extension LightItUpView {
         startCardTimer()
         startGameTimer()
     }
-    
+    // Each card timer ( How long each card should stay)
     private func startCardTimer() {
         
-        cardTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+        cardTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
             
             guard !gameOver else { return }
             
