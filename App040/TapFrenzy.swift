@@ -3,6 +3,7 @@ import Combine
 
 struct TapFrenzy: View {
 
+    // MARK: - Game State
     @State private var score = 0
     @State private var timeRemaining = 10
     @State private var gameOver = false
@@ -10,6 +11,9 @@ struct TapFrenzy: View {
 
     @State private var buttonSize: CGFloat = 200
     @State private var buttonPosition: CGPoint = .zero
+
+    // MARK: - HIGH SCORE (NEW)
+    @AppStorage("tapFrenzyHighScore") private var highScore = 0
 
     let timer = Timer.publish(
         every: 1,
@@ -29,10 +33,14 @@ struct TapFrenzy: View {
                     Toggle("Dark Mode", isOn: $isDarkMode)
                         .padding(.horizontal)
 
-                    // Score
+                    // Score + High Score
                     Text("Score: \(score)")
                         .font(.largeTitle)
                         .fontWeight(.bold)
+
+                    Text("High Score: \(highScore)")
+                        .font(.title3)
+                        .foregroundColor(.green)
 
                     Spacer()
 
@@ -53,20 +61,16 @@ struct TapFrenzy: View {
                             Text("Final Score: \(score)")
                                 .font(.title3)
 
+                            // NEW: High score update message
+                            if score == highScore {
+                                Text("🎉 New High Score!")
+                                    .font(.headline)
+                                    .foregroundColor(.green)
+                            }
+
                             Button("Let's Play Again!") {
 
-                                score = 0
-                                timeRemaining = 10
-                                gameOver = false
-                                buttonSize = 200
-
-                                // Return button to center
-                                withAnimation(.spring()) {
-                                    buttonPosition = CGPoint(
-                                        x: geo.size.width / 2,
-                                        y: geo.size.height / 2
-                                    )
-                                }
+                                restartGame(geo: geo)
                             }
                             .padding()
                             .background(Color.green)
@@ -92,7 +96,6 @@ struct TapFrenzy: View {
 
                     score += 1
 
-                    // Move button after every tap
                     withAnimation(.spring()) {
 
                         buttonPosition = CGPoint(
@@ -111,10 +114,7 @@ struct TapFrenzy: View {
                         .font(.title)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
-                        .frame(
-                            width: buttonSize,
-                            height: buttonSize
-                        )
+                        .frame(width: buttonSize, height: buttonSize)
                         .background(Color.orange.opacity(0.8))
                         .clipShape(Circle())
                 }
@@ -123,7 +123,6 @@ struct TapFrenzy: View {
             }
             .onAppear {
 
-                // Start button in center
                 buttonPosition = CGPoint(
                     x: geo.size.width / 2,
                     y: geo.size.height / 2
@@ -137,7 +136,6 @@ struct TapFrenzy: View {
 
                     timeRemaining -= 1
 
-                    // Shrink button as time decreases
                     withAnimation(.easeInOut(duration: 0.4)) {
 
                         let newSize = CGFloat(timeRemaining * 15 + 50)
@@ -146,19 +144,38 @@ struct TapFrenzy: View {
 
                 } else {
 
-                    gameOver = true
-
-                    // Return button to center when game ends
-                    withAnimation(.spring()) {
-                        buttonPosition = CGPoint(
-                            x: geo.size.width / 2,
-                            y: geo.size.height / 2
-                        )
-                    }
+                    endGame()
                 }
             }
         }
         .preferredColorScheme(isDarkMode ? .dark : .light)
+    }
+
+    // MARK: - GAME FUNCTIONS
+
+    private func endGame() {
+
+        gameOver = true
+
+        // HIGH SCORE CHECK
+        if score > highScore {
+            highScore = score
+        }
+    }
+
+    private func restartGame(geo: GeometryProxy) {
+
+        score = 0
+        timeRemaining = 10
+        gameOver = false
+        buttonSize = 200
+
+        withAnimation(.spring()) {
+            buttonPosition = CGPoint(
+                x: geo.size.width / 2,
+                y: geo.size.height / 2
+            )
+        }
     }
 }
 
