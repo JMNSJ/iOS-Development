@@ -1,4 +1,3 @@
-import Foundation
 import Combine
 import Foundation
 
@@ -26,19 +25,31 @@ class QuizViewModel: ObservableObject {
         }
     }
     
-    // MARK: Load Questions
+    // MARK: Load Questions (Async/Await)
     func loadQuestions() async {
+        
         isLoading = true
         errorMessage = nil
         
         do {
-            questions = try await service.fetchQuestions()
+            let fetchedQuestions = try await service.fetchQuestions()
+            
+            guard !fetchedQuestions.isEmpty else {
+                throw NSError(domain: "QuizRush", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "No questions received from API"
+                ])
+            }
+            
+            questions = fetchedQuestions
             currentIndex = 0
             score = 0
             streak = 0
+            
             setupOptions()
+            
         } catch {
-            errorMessage = "Failed to load questions. Please try again."
+            print("❌ ERROR:", error)
+            errorMessage = error.localizedDescription
         }
         
         isLoading = false
@@ -46,20 +57,22 @@ class QuizViewModel: ObservableObject {
     
     // MARK: Setup Options
     func setupOptions() {
+        
         guard currentIndex < questions.count else { return }
         
-        let q = questions[currentIndex]
+        let question = questions[currentIndex]
         
-        var all = q.incorrect_answers
-        all.append(q.correct_answer)
-        all.shuffle()
+        var allOptions = question.incorrect_answers
+        allOptions.append(question.correct_answer)
+        allOptions.shuffle()
         
-        options = all
+        options = allOptions
         selectedAnswer = nil
     }
     
-    // MARK: Answer Selection
+    // MARK: Select Answer
     func selectAnswer(_ answer: String) {
+        
         guard selectedAnswer == nil else { return }
         
         selectedAnswer = answer
@@ -68,27 +81,26 @@ class QuizViewModel: ObservableObject {
         
         if answer == correct {
             streak += 1
-            score += 10 + (streak >= 3 ? 5 : 0)
+            let bonus = streak >= 3 ? 5 : 0
+            score += 10 + bonus
         } else {
             streak = 0
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            self.nextQuestion()
+        Task {
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            nextQuestion()
         }
     }
     
     // MARK: Next Question
     func nextQuestion() {
+        
         if currentIndex + 1 < questions.count {
             currentIndex += 1
             setupOptions()
+        } else {
+            print("🎉 Game Finished! Score: \(score)")
         }
     }
-    
-    // MARK: Check Correct
-    func isCorrect(_ option: String) -> Bool {
-        questions[currentIndex].correct_answer == option
-    }
 }
-
