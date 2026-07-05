@@ -11,7 +11,7 @@ struct HomeView: View {
                     .fontWeight(.bold)
 
                 NavigationLink {
-                    TapFrenzy()
+                    TapFrenzyView()
                 } label: {
                     Text("Tap Frenzy")
                         .frame(width: 220, height: 60)
