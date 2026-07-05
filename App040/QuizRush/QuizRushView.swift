@@ -14,7 +14,14 @@ struct QuizRushView: View {
                 errorView(error)
             }
             else {
-                gameView
+                switch vm.gameState {
+                    
+                case .playing:
+                    gameView
+                    
+                case .finished:
+                    resultView
+                }
             }
         }
         .onAppear {
@@ -59,6 +66,35 @@ struct QuizRushView: View {
             .padding()
             
             Spacer()
+        }
+    }
+    
+    // MARK: Result View (NEW)
+    var resultView: some View {
+        VStack(spacing: 20) {
+            
+            Text("🎉 Game Finished")
+                .font(.largeTitle)
+            
+            Text("Your Score")
+                .font(.headline)
+            
+            Text("\(vm.score)")
+                .font(.system(size: 50, weight: .bold))
+                .foregroundColor(.green)
+            
+            Text("🔥 Final Streak: \(vm.streak)")
+                .font(.title3)
+            
+            Button("Play Again") {
+                vm.startGame()
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(12)
+            .padding(.horizontal)
         }
     }
     

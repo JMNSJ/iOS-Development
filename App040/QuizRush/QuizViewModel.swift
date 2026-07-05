@@ -4,6 +4,13 @@ import Foundation
 @MainActor
 class QuizViewModel: ObservableObject {
     
+    enum GameState {
+        case playing
+        case finished
+    }
+    
+    @Published var gameState: GameState = .playing
+    
     @Published var questions: [TriviaQuestion] = []
     @Published var currentIndex = 0
     
@@ -25,11 +32,12 @@ class QuizViewModel: ObservableObject {
         }
     }
     
-    // MARK: Load Questions (Async/Await)
+    // MARK: Load Questions
     func loadQuestions() async {
         
         isLoading = true
         errorMessage = nil
+        gameState = .playing
         
         do {
             let fetchedQuestions = try await service.fetchQuestions()
@@ -100,7 +108,7 @@ class QuizViewModel: ObservableObject {
             currentIndex += 1
             setupOptions()
         } else {
-            print("🎉 Game Finished! Score: \(score)")
+            gameState = .finished   // ✅ SHOW RESULT SCREEN
         }
     }
 }
