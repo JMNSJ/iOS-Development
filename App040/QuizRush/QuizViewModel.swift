@@ -91,3 +91,4 @@ class QuizViewModel: ObservableObject {
         questions[currentIndex].correct_answer == option
     }
 }
+

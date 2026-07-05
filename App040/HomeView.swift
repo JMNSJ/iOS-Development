@@ -29,6 +29,16 @@ struct HomeView: View {
                         .foregroundColor(.white)
                         .cornerRadius(15)
                 }
+                
+                NavigationLink {
+                    QuizRushView()
+                } label: {
+                    Text("QuizRush")
+                        .frame(width: 220, height: 60)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(15)
+                }
             }
         }
     }
