@@ -1,9 +1,17 @@
 import SwiftUI
 
+
 struct TapFrenzyView: View {
 
-    @StateObject private var vm = TapFrenzyVM()
-
+    
+    @StateObject private var vm =
+    TapFrenzyVM()
+    
+    
+    @EnvironmentObject var locationService:
+    LocationService
+    
+    
     var body: some View {
 
         GeometryReader { geo in
@@ -16,35 +24,61 @@ struct TapFrenzyView: View {
                         mode: .tapFrenzy,
                         score: vm.score
                     ) {
-                        vm.restartGame(size: geo.size)
+                        
+                        vm.restartGame(
+                            size: geo.size
+                        )
+                        
+                        
+                        // Save location when restarting
+                        
+                        locationService.recordWhenAvailable(
+                            gameName: "Tap Frenzy"
+                        )
                     }
 
                 } else {
 
                     VStack {
 
-                        Toggle("Dark Mode", isOn: $vm.isDarkMode)
-                            .padding(.horizontal)
+                        Toggle(
+                            "Dark Mode",
+                            isOn: $vm.isDarkMode
+                        )
+                        .padding(.horizontal)
 
-                        Text("Score: \(vm.score)")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
 
-                        Text("High Score: \(vm.highScore)")
-                            .font(.title3)
-                            .foregroundColor(.green)
+                        Text(
+                            "Score: \(vm.score)"
+                        )
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+
+
+                        Text(
+                            "High Score: \(vm.highScore)"
+                        )
+                        .font(.title3)
+                        .foregroundColor(.green)
+
 
                         Spacer()
 
-                        Text("Time: \(vm.timeRemaining)")
-                            .font(.largeTitle)
-                            .fontWeight(.semibold)
-                            .padding(.bottom, 40)
+
+                        Text(
+                            "Time: \(vm.timeRemaining)"
+                        )
+                        .font(.largeTitle)
+                        .fontWeight(.semibold)
+                        .padding(.bottom, 40)
                     }
+
 
                     Button {
 
-                        vm.handleTap(in: geo.size)
+                        vm.handleTap(
+                            in: geo.size
+                        )
 
                     } label: {
 
@@ -53,30 +87,62 @@ struct TapFrenzyView: View {
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                             .frame(
-                                width: vm.buttonSize,
-                                height: vm.buttonSize
+                                width:
+                                    vm.buttonSize,
+                                height:
+                                    vm.buttonSize
                             )
                             .background(
                                 Color.orange.opacity(0.8)
                             )
-                            .clipShape(Circle())
+                            .clipShape(
+                                Circle()
+                            )
                     }
-                    .position(vm.buttonPosition)
+                    .position(
+                        vm.buttonPosition
+                    )
                 }
             }
             .onAppear {
 
-                vm.startGame(size: geo.size)
+                
+                // Start location tracking
+                
+                locationService.startUpdating()
+                
+                
+                // Save Tap Frenzy location
+                
+                locationService.recordWhenAvailable(
+                    gameName: "Tap Frenzy"
+                )
+                
+                
+                // Start game
+                
+                vm.startGame(
+                    size: geo.size
+                )
             }
         }
         .preferredColorScheme(
-            vm.isDarkMode ? .dark : .light
+            vm.isDarkMode
+            ? .dark
+            : .light
         )
     }
 }
 
+
+
 #Preview {
+    
     NavigationStack {
+        
         TapFrenzyView()
+            .environmentObject(
+                LocationService()
+            )
     }
 }

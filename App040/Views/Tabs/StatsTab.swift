@@ -4,112 +4,79 @@ import Charts
 
 struct StatsTab: View {
     
-    
     @EnvironmentObject var sessionStore: SessionStore
     
     
     private var statsVM: StatsVM {
-        
         StatsVM(
             sessionStore: sessionStore
         )
     }
     
     
-    
-    
     var body: some View {
         
-        
-        ScrollView {
+        List {
             
-            
-            VStack(spacing: 20) {
-                
-                
-                Text("Statistics")
-                    .font(.largeTitle)
-                    .bold()
-                
-                
+            Section {
                 
                 StatCard(
                     title: "Games Played",
-                    value:
-                        "\(statsVM.totalGames)"
+                    value: "\(statsVM.totalGames)"
                 )
-                
-                
                 
                 StatCard(
                     title: "Total Score",
-                    value:
-                        "\(statsVM.totalScore)"
+                    value: "\(statsVM.totalScore)"
                 )
-                
-                
                 
                 StatCard(
                     title: "Personal Best",
-                    value:
-                        "\(statsVM.personalBest)"
+                    value: "\(statsVM.personalBest)"
                 )
-                
-                
                 
                 StatCard(
                     title: "Average Score",
-                    value:
-                        String(
-                            format: "%.1f",
-                            statsVM.averageScore
-                        )
+                    value: String(
+                        format: "%.1f",
+                        statsVM.averageScore
+                    )
                 )
                 
-                
-                
-                Divider()
-                
-                
+            }
+            
+            
+            Section {
                 
                 Text("Score By Mode")
                     .font(.title3)
                     .bold()
                 
                 
-                
-                Chart(
-                    statsVM.chartData
-                ) { item in
+                Chart(statsVM.chartData) { item in
                     
                     BarMark(
-                        x:
-                            .value(
-                                "Game",
-                                item.mode
-                            ),
+                        x: .value(
+                            "Game",
+                            item.mode
+                        ),
                         
-                        y:
-                            .value(
-                                "Score",
-                                item.score
-                            )
+                        y: .value(
+                            "Score",
+                            item.score
+                        )
                     )
                 }
-                .frame(
-                    height: 250
-                )
+                .frame(height: 200)
                 
-                
-                
-                Divider()
-                
-                
+            }
+            
+            
+            Section {
                 
                 Text("Personal Bests")
                     .font(.title3)
                     .bold()
-                
                 
                 
                 ForEach(
@@ -119,9 +86,7 @@ struct StatsTab: View {
                     
                     HStack {
                         
-                        Text(
-                            mode.rawValue
-                        )
+                        Text(mode.rawValue)
                         
                         Spacer()
                         
@@ -130,33 +95,21 @@ struct StatsTab: View {
                         )
                         .bold()
                     }
-                    .padding()
-                    .background(
-                        RoundedRectangle(
-                            cornerRadius: 12
-                        )
-                        .fill(
-                            Color.gray.opacity(0.15)
-                        )
-                    )
                 }
                 
-                
-                
-                Divider()
-                
-                
+            }
+            
+            
+            Section {
                 
                 Text("Recent Games")
                     .font(.title3)
                     .bold()
                 
                 
-                
                 ForEach(
                     statsVM.recentGames
                 ) { session in
-                    
                     
                     VStack(
                         alignment: .leading,
@@ -170,9 +123,7 @@ struct StatsTab: View {
                             )
                             .font(.headline)
                             
-                            
                             Spacer()
-                            
                             
                             Text(
                                 "\(session.score)"
@@ -188,19 +139,12 @@ struct StatsTab: View {
                         )
                         .font(.caption)
                     }
-                    .padding()
-                    .background(
-                        RoundedRectangle(
-                            cornerRadius: 15
-                        )
-                        .fill(
-                            Color.gray.opacity(0.15)
-                        )
-                    )
+                    .padding(.vertical, 8)
                 }
+                
             }
-            .padding()
         }
+        .listStyle(.insetGrouped)
         .navigationTitle("Stats")
     }
 }
@@ -210,17 +154,13 @@ struct StatsTab: View {
 
 struct StatCard: View {
     
-    
     let title: String
-    
     let value: String
-    
     
     
     var body: some View {
         
         VStack(spacing: 8) {
-            
             
             Text(title)
                 .font(.headline)
@@ -229,6 +169,8 @@ struct StatCard: View {
             Text(value)
                 .font(.largeTitle)
                 .bold()
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
         }
         .frame(
             maxWidth: .infinity
