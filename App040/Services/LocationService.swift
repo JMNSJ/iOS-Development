@@ -11,6 +11,10 @@ final class LocationService: NSObject, ObservableObject {
     
     @Published var currentLocation: CLLocation?
     
+    @Published var authorizationStatus:
+    CLAuthorizationStatus = .notDetermined
+    
+    
     
     override init() {
         
@@ -21,23 +25,35 @@ final class LocationService: NSObject, ObservableObject {
         manager.desiredAccuracy =
         kCLLocationAccuracyBest
         
+        authorizationStatus =
+        manager.authorizationStatus
+        
         requestPermission()
     }
     
     
     
-    // MARK: Request Permission
+    // MARK: Permission
+    
     
     func requestPermission() {
         
         manager.requestWhenInUseAuthorization()
+    }
+    
+    
+    
+    // MARK: Start Updating
+    
+    
+    func startUpdating() {
         
         manager.startUpdatingLocation()
     }
     
     
     
-    // MARK: Get Coordinates
+    // MARK: Coordinates
     
     
     var latitude: Double? {
@@ -59,9 +75,8 @@ final class LocationService: NSObject, ObservableObject {
 
 
 
-
-
-extension LocationService: CLLocationManagerDelegate {
+extension LocationService:
+    CLLocationManagerDelegate {
     
     
     func locationManager(
@@ -69,12 +84,18 @@ extension LocationService: CLLocationManagerDelegate {
         didChangeAuthorization status: CLAuthorizationStatus
     ) {
         
+        DispatchQueue.main.async {
+            
+            self.authorizationStatus = status
+        }
+        
+        
         switch status {
             
         case .authorizedWhenInUse,
              .authorizedAlways:
             
-            manager.startUpdatingLocation()
+            startUpdating()
             
             
         case .denied,
@@ -86,7 +107,6 @@ extension LocationService: CLLocationManagerDelegate {
             
             
         case .notDetermined:
-            
             break
             
             
@@ -114,10 +134,6 @@ extension LocationService: CLLocationManagerDelegate {
             
             self.currentLocation = location
         }
-        
-        
-        // We only need one location
-        manager.stopUpdatingLocation()
     }
     
     

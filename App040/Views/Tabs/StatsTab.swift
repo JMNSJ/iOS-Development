@@ -1,10 +1,21 @@
 import SwiftUI
+import Charts
 
 
 struct StatsTab: View {
     
     
     @EnvironmentObject var sessionStore: SessionStore
+    
+    
+    private var statsVM: StatsVM {
+        
+        StatsVM(
+            sessionStore: sessionStore
+        )
+    }
+    
+    
     
     
     var body: some View {
@@ -24,40 +35,100 @@ struct StatsTab: View {
                 
                 StatCard(
                     title: "Games Played",
-                    value: "\(sessionStore.sessions.count)"
+                    value:
+                        "\(statsVM.totalGames)"
                 )
                 
                 
                 
                 StatCard(
                     title: "Total Score",
-                    value: "\(totalScore)"
+                    value:
+                        "\(statsVM.totalScore)"
                 )
                 
                 
                 
                 StatCard(
                     title: "Personal Best",
-                    value: "\(bestScore)"
+                    value:
+                        "\(statsVM.personalBest)"
                 )
                 
                 
                 
-                Text("Recent Games")
-                    .font(.headline)
+                StatCard(
+                    title: "Average Score",
+                    value:
+                        String(
+                            format: "%.1f",
+                            statsVM.averageScore
+                        )
+                )
+                
+                
+                
+                Divider()
+                
+                
+                
+                Text("Score By Mode")
+                    .font(.title3)
+                    .bold()
+                
+                
+                
+                Chart(
+                    statsVM.chartData
+                ) { item in
+                    
+                    BarMark(
+                        x:
+                            .value(
+                                "Game",
+                                item.mode
+                            ),
+                        
+                        y:
+                            .value(
+                                "Score",
+                                item.score
+                            )
+                    )
+                }
+                .frame(
+                    height: 250
+                )
+                
+                
+                
+                Divider()
+                
+                
+                
+                Text("Personal Bests")
+                    .font(.title3)
+                    .bold()
+                
                 
                 
                 ForEach(
-                    recentGames
-                ) { session in
+                    GameMode.allCases,
+                    id: \.self
+                ) { mode in
                     
                     HStack {
                         
-                        Text(session.mode.rawValue)
+                        Text(
+                            mode.rawValue
+                        )
                         
                         Spacer()
                         
-                        Text("\(session.score)")
+                        Text(
+                            "\(statsVM.bestScore(for: mode))"
+                        )
+                        .bold()
                     }
                     .padding()
                     .background(
@@ -69,47 +140,71 @@ struct StatsTab: View {
                         )
                     )
                 }
+                
+                
+                
+                Divider()
+                
+                
+                
+                Text("Recent Games")
+                    .font(.title3)
+                    .bold()
+                
+                
+                
+                ForEach(
+                    statsVM.recentGames
+                ) { session in
+                    
+                    
+                    VStack(
+                        alignment: .leading,
+                        spacing: 8
+                    ) {
+                        
+                        HStack {
+                            
+                            Text(
+                                session.mode.rawValue
+                            )
+                            .font(.headline)
+                            
+                            
+                            Spacer()
+                            
+                            
+                            Text(
+                                "\(session.score)"
+                            )
+                            .font(.title3)
+                            .bold()
+                        }
+                        
+                        
+                        Text(
+                            session.timestamp,
+                            style: .date
+                        )
+                        .font(.caption)
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(
+                            cornerRadius: 15
+                        )
+                        .fill(
+                            Color.gray.opacity(0.15)
+                        )
+                    )
+                }
             }
             .padding()
         }
         .navigationTitle("Stats")
     }
-    
-    
-    
-    var totalScore: Int {
-        
-        sessionStore.sessions
-            .reduce(0) {
-                $0 + $1.score
-            }
-    }
-    
-    
-    
-    var bestScore: Int {
-        
-        sessionStore.sessions
-            .map {
-                $0.score
-            }
-            .max() ?? 0
-    }
-    
-    
-    
-    var recentGames: [GameSession] {
-        
-        sessionStore.sessions
-            .sorted {
-                $0.timestamp > $1.timestamp
-            }
-            .prefix(5)
-            .map {
-                $0
-            }
-    }
 }
+
 
 
 
@@ -121,19 +216,23 @@ struct StatCard: View {
     let value: String
     
     
+    
     var body: some View {
         
-        VStack {
+        VStack(spacing: 8) {
+            
             
             Text(title)
-                .font(.subheadline)
+                .font(.headline)
             
             
             Text(value)
                 .font(.largeTitle)
                 .bold()
         }
-        .frame(maxWidth: .infinity)
+        .frame(
+            maxWidth: .infinity
+        )
         .padding()
         .background(
             RoundedRectangle(
