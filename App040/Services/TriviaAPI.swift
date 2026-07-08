@@ -1,31 +1,122 @@
 import Foundation
 
-class TriviaService {
+
+final class TriviaAPI {
+    
+    
+    private static let apiURL =
+    "https://opentdb.com/api.php?amount=10&type=multiple"
+    
+    
+    
+    private let session: URLSession
+    
+    
+    init() {
+        
+        let configuration =
+        URLSessionConfiguration.default
+        
+        configuration.timeoutIntervalForRequest = 15
+        
+        configuration.timeoutIntervalForResource = 30
+        
+        self.session =
+        URLSession(configuration: configuration)
+    }
+    
+    
+    
     
     func fetchQuestions() async throws -> [TriviaQuestion] {
         
-        let url = URL(string: "https://opentdb.com/api.php?amount=10&type=multiple")!
         
-        let (data, response) = try await URLSession.shared.data(from: url)
-        
-        guard let http = response as? HTTPURLResponse else {
-            throw URLError(.badServerResponse)
+        guard let url =
+                URL(string: Self.apiURL)
+        else {
+            throw TriviaAPIError.invalidURL
         }
         
-        guard http.statusCode == 200 else {
-            throw URLError(.badServerResponse)
+        
+        let (data, response) =
+        try await session.data(
+            from: url
+        )
+        
+        
+        
+        guard let httpResponse =
+                response as? HTTPURLResponse
+        else {
+            throw TriviaAPIError.invalidResponse
         }
         
-        let decoded = try JSONDecoder().decode(TriviaResponse.self, from: data)
         
-        // response_code 0 == success. Other codes mean OpenTDB returned no usable data.
-        guard decoded.response_code == 0 else {
-            throw NSError(domain: "QuizRush", code: decoded.response_code, userInfo: [
-                NSLocalizedDescriptionKey: "Trivia API returned an error (code \(decoded.response_code))"
-            ])
+        
+        guard (200...299)
+                .contains(httpResponse.statusCode)
+        else {
+            throw TriviaAPIError.serverError(
+                httpResponse.statusCode
+            )
         }
         
-        // Decode HTML entities before handing questions off to the view model.
-        return decoded.results.map { $0.htmlDecoded() }
+        
+        let decoded =
+        try JSONDecoder()
+            .decode(
+                TriviaResponse.self,
+                from: data
+            )
+        
+        
+        guard decoded.response_code == 0
+        else {
+            throw TriviaAPIError.apiError(
+                decoded.response_code
+            )
+        }
+        
+        
+        return decoded.results.map {
+            $0.htmlDecoded()
+        }
+    }
+}
+
+
+
+
+enum TriviaAPIError: LocalizedError {
+    
+    
+    case invalidURL
+    
+    case invalidResponse
+    
+    case serverError(Int)
+    
+    case apiError(Int)
+    
+    
+    var errorDescription: String? {
+        
+        switch self {
+            
+        case .invalidURL:
+            return "Invalid trivia API URL."
+            
+            
+        case .invalidResponse:
+            return "Invalid server response."
+            
+            
+        case .serverError(let code):
+            return "Server error. HTTP status: \(code)"
+            
+            
+        case .apiError(let code):
+            return "Trivia API returned error code \(code)."
+        }
     }
 }

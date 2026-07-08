@@ -1,7 +1,9 @@
-//
-//  GameMode.swift
-//  App040
-//
-//  Created by Student1 on 2026-07-05.
-//
+import Foundation
 
+
+enum GameMode: String, Codable, CaseIterable {
+    
+    case tapFrenzy = "Tap Frenzy"
+    case lightItUp = "Light It Up"
+    case quizRush = "Quiz Rush"
+}
