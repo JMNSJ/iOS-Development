@@ -36,6 +36,21 @@ final class LightItUpViewModel: ObservableObject {
     
     private var gameTimer: Timer?
     
+    @objc private func cardTimerFired(_ timer: Timer) {
+        guard !gameOver else { return }
+        score -= 1
+        activeCard = Int.random(in: 0..<3)
+    }
+
+    @objc private func gameTimerFired(_ timer: Timer) {
+        if timeRemaining > 0 {
+            timeRemaining -= 1
+        } else {
+            timer.invalidate()
+            gameOver = true
+        }
+    }
+    
     
     
     
@@ -64,27 +79,11 @@ final class LightItUpViewModel: ObservableObject {
     private func startCardTimer() {
         
         
-        cardTimer =
-        Timer.scheduledTimer(
-            withTimeInterval: 1.5,
-            repeats: true
-        ) { [weak self] _ in
-            
-            guard let self else {
-                return
-            }
-            
-            
-            guard !self.gameOver else {
-                return
-            }
-            
-            
-            self.score -= 1
-            
-            self.activeCard =
-            Int.random(in: 0..<3)
-        }
+        cardTimer = Timer.scheduledTimer(timeInterval: 1.5,
+                                         target: self,
+                                         selector: #selector(cardTimerFired(_:)),
+                                         userInfo: nil,
+                                         repeats: true)
     }
     
     
@@ -93,28 +92,11 @@ final class LightItUpViewModel: ObservableObject {
     private func startGameTimer() {
         
         
-        gameTimer =
-        Timer.scheduledTimer(
-            withTimeInterval: 1,
-            repeats: true
-        ) { [weak self] timer in
-            
-            guard let self else {
-                return
-            }
-            
-            
-            if self.timeRemaining > 0 {
-                
-                self.timeRemaining -= 1
-                
-            } else {
-                
-                timer.invalidate()
-                
-                self.gameOver = true
-            }
-        }
+        gameTimer = Timer.scheduledTimer(timeInterval: 1.0,
+                                         target: self,
+                                         selector: #selector(gameTimerFired(_:)),
+                                         userInfo: nil,
+                                         repeats: true)
     }
     
     
@@ -192,3 +174,4 @@ final class LightItUpViewModel: ObservableObject {
         gameTimer = nil
     }
 }
+

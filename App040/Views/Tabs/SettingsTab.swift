@@ -32,20 +32,12 @@ struct SettingsTab: View {
                     isOn:
                         $notificationsEnabled
                 )
-                .onChange(
-                    of: notificationsEnabled
-                ) { value in
-                    
-                    if value {
-                        
+                .onChange(of: notificationsEnabled) { oldValue, newValue in
+                    if newValue {
                         NotificationService
                             .shared
-                            .requestPermission {
-                                _ in
-                            }
-                    }
-                    else {
-                        
+                            .requestPermission { _ in }
+                    } else {
                         NotificationService
                             .shared
                             .removeDailyChallenge()
@@ -101,3 +93,4 @@ struct SettingsTab: View {
         }
     }
 }
+

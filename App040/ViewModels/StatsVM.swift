@@ -1,4 +1,6 @@
+import SwiftUI
 import Foundation
+import Combine
 
 
 @MainActor
@@ -142,3 +144,4 @@ struct ChartData: Identifiable {
     
     let score: Int
 }
+

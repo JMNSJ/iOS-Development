@@ -22,15 +22,18 @@ final class TapFrenzyVM: ObservableObject {
     @Published var isDarkMode = false
     
     
+    
     // MARK: - High Score
     
     @AppStorage("tapFrenzyHighScore")
     var highScore = 0
     
     
+    
     // MARK: - Timer
     
     private var timer: Timer?
+    
     
     
     
@@ -45,47 +48,40 @@ final class TapFrenzyVM: ObservableObject {
     
     
     
+    
+    // MARK: - Timer
+    
     private func startTimer() {
-        
         timer?.invalidate()
-        
-        
-        timer = Timer.scheduledTimer(
-            withTimeInterval: 1,
-            repeats: true
-        ) { [weak self] _ in
-            
-            guard let self else { return }
-            
-            
-            if self.gameOver {
-                return
+        // Schedule timer on the main run loop using selector to avoid capturing self in a @Sendable closure
+        let timer = Timer.scheduledTimer(timeInterval: 1,
+                                         target: self,
+                                         selector: #selector(timerFired),
+                                         userInfo: nil,
+                                         repeats: true)
+        self.timer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+    
+    @objc private func timerFired() {
+        guard !gameOver else { return }
+
+        if timeRemaining > 0 {
+            timeRemaining -= 1
+
+            withAnimation(.easeInOut(duration: 0.4)) {
+                let newSize = CGFloat(timeRemaining * 15 + 50)
+                buttonSize = max(50, newSize)
             }
-            
-            
-            if self.timeRemaining > 0 {
-                
-                self.timeRemaining -= 1
-                
-                
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    
-                    let newSize =
-                    CGFloat(self.timeRemaining * 15 + 50)
-                    
-                    self.buttonSize =
-                    max(50, newSize)
-                }
-                
-            } else {
-                
-                self.gameOver = true
-            }
+        } else {
+            endGame()
         }
     }
     
     
     
+    
+    // MARK: - Button Tap
     
     func handleTap(in size: CGSize) {
         
@@ -97,14 +93,24 @@ final class TapFrenzyVM: ObservableObject {
         score += 1
         
         
-        withAnimation(.spring()) {
+        withAnimation(
+            .spring()
+        ) {
             
-            buttonPosition = CGPoint(
+            buttonPosition =
+            CGPoint(
                 x: CGFloat.random(
-                    in: buttonSize/2...(size.width - buttonSize/2)
+                    in:
+                    buttonSize / 2
+                    ...
+                    size.width - buttonSize / 2
                 ),
+                
                 y: CGFloat.random(
-                    in: 150...(size.height - 150)
+                    in:
+                    150
+                    ...
+                    size.height - 150
                 )
             )
         }
@@ -113,10 +119,9 @@ final class TapFrenzyVM: ObservableObject {
     
     
     
-    func endGame(
-        sessionStore: SessionStore,
-        locationService: LocationService
-    ) {
+    // MARK: - End Game
+    
+    func endGame() {
         
         guard !gameOver else {
             return
@@ -125,30 +130,21 @@ final class TapFrenzyVM: ObservableObject {
         
         gameOver = true
         
+        
         timer?.invalidate()
         timer = nil
         
         
         if score > highScore {
+            
             highScore = score
         }
-        
-        
-        let session = GameSession(
-            id: UUID(),
-            mode: .tapFrenzy,
-            score: score,
-            timestamp: Date(),
-            latitude: locationService.latitude,
-            longitude: locationService.longitude
-        )
-        
-        
-        sessionStore.add(session)
     }
     
     
     
+    
+    // MARK: - Restart
     
     func restartGame(size: CGSize) {
         
@@ -159,6 +155,8 @@ final class TapFrenzyVM: ObservableObject {
     
     
     
+    
+    // MARK: - Reset
     
     private func resetGame(size: CGSize) {
         
@@ -171,12 +169,28 @@ final class TapFrenzyVM: ObservableObject {
         buttonSize = 200
         
         
-        withAnimation(.spring()) {
+        withAnimation(
+            .spring()
+        ) {
             
-            buttonPosition = CGPoint(
+            buttonPosition =
+            CGPoint(
                 x: size.width / 2,
                 y: size.height / 2
             )
         }
     }
+    
+    
+    
+    
+    // MARK: - Cleanup
+    
+    func stopTimer() {
+        
+        timer?.invalidate()
+        
+        timer = nil
+    }
 }
+

@@ -22,6 +22,7 @@ final class QuizRushVM: ObservableObject {
     
     @Published var options: [String] = []
     
+    
     @Published var selectedAnswer: String?
     
     
@@ -38,15 +39,14 @@ final class QuizRushVM: ObservableObject {
     private let api = TriviaAPI()
     
     
-    
-    
     func startGame() {
+        
+        gameState = .playing
         
         Task {
             await loadQuestions()
         }
     }
-    
     
     
     
@@ -86,7 +86,6 @@ final class QuizRushVM: ObservableObject {
     
     
     
-    
     func setupOptions() {
         
         guard currentIndex < questions.count
@@ -99,16 +98,16 @@ final class QuizRushVM: ObservableObject {
         questions[currentIndex]
             .shuffledAnswers
         
-        
         selectedAnswer = nil
     }
     
     
     
-    
-    func selectAnswer(_ answer: String) {
+    func selectAnswer(_ answer:String) {
         
-        guard selectedAnswer == nil
+        
+        guard selectedAnswer == nil,
+              currentIndex < questions.count
         else {
             return
         }
@@ -125,7 +124,8 @@ final class QuizRushVM: ObservableObject {
             score +=
             10 + (streak >= 3 ? 5 : 0)
             
-        } else {
+        }
+        else {
             
             streak = 0
         }
@@ -137,14 +137,15 @@ final class QuizRushVM: ObservableObject {
                 nanoseconds: 800_000_000
             )
             
+            
             nextQuestion()
         }
     }
     
     
     
-    
     func nextQuestion() {
+        
         
         if currentIndex + 1 < questions.count {
             
@@ -152,12 +153,12 @@ final class QuizRushVM: ObservableObject {
             
             setupOptions()
             
-        } else {
+        }
+        else {
             
             gameState = .finished
         }
     }
-    
     
     
     
@@ -178,7 +179,5 @@ final class QuizRushVM: ObservableObject {
         
         
         sessionStore.add(session)
-        
-        gameState = .finished
     }
 }

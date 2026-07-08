@@ -9,6 +9,9 @@ struct HomeTab: View {
         VStack(spacing: 25) {
             
             
+            Spacer()
+            
+            
             Text("PlayHub")
                 .font(.largeTitle)
                 .fontWeight(.bold)
@@ -70,6 +73,10 @@ struct HomeTab: View {
 
 
 
+
+
+// MARK: - Reusable Game Button
+
 struct GameButton: View {
     
     
@@ -78,13 +85,16 @@ struct GameButton: View {
     let icon: String
     
     
+    
     var body: some View {
         
         
-        HStack {
+        HStack(spacing: 15) {
+            
             
             Image(systemName: icon)
                 .font(.title2)
+                .frame(width: 30)
             
             
             Text(title)
@@ -95,9 +105,15 @@ struct GameButton: View {
             
             
             Image(systemName: "chevron.right")
+                .foregroundColor(.secondary)
         }
         .padding()
+        .frame(
+            maxWidth: .infinity,
+            minHeight: 65
+        )
         .background(
+            
             RoundedRectangle(
                 cornerRadius: 16
             )
@@ -105,5 +121,15 @@ struct GameButton: View {
                 Color.blue.opacity(0.15)
             )
         )
+    }
+}
+
+
+
+
+#Preview {
+    
+    NavigationStack {
+        HomeTab()
     }
 }
