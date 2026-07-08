@@ -8,23 +8,19 @@ struct ResultView: View {
     
     let score: Int
     
-    
     let restartAction: () -> Void
     
     
-    
     @EnvironmentObject var sessionStore: SessionStore
-    
     @EnvironmentObject var locationService: LocationService
-    
     
     
     @Environment(\.dismiss)
     private var dismiss
     
     
-    
     @State private var saved = false
+    @State private var animate = false
     
     
     
@@ -32,70 +28,210 @@ struct ResultView: View {
     var body: some View {
         
         
-        VStack(spacing: 30) {
+        ZStack {
             
             
-            Text(
-                "Game Complete!"
+            // MARK: Background
+            
+            LinearGradient(
+                colors: [
+                    Color.black,
+                    Color.indigo.opacity(0.8),
+                    Color.purple.opacity(0.7)
+                ],
+                startPoint: animate ? .topLeading : .bottomTrailing,
+                endPoint: animate ? .bottomTrailing : .topLeading
             )
-            .font(.largeTitle)
-            .bold()
-            
-            
-            
-            ScoreBadge(
-                score: score
+            .ignoresSafeArea()
+            .animation(
+                .easeInOut(duration: 6)
+                .repeatForever(
+                    autoreverses: true
+                ),
+                value: animate
             )
             
             
             
-            ShareLink(
-                item:
-                    shareText
-            ) {
-                
-                Label(
-                    "Share Score",
-                    systemImage:
-                        "square.and.arrow.up"
-                )
-                .font(.headline)
-            }
             
-            
-            
-            Button {
+            VStack(spacing: 25) {
                 
-                restartAction()
                 
-            } label: {
+                Text("🎉")
+                    .font(.system(size: 70))
                 
-                Text(
-                    "Play Again"
-                )
+                
+                Text("Game Complete!")
+                    .font(
+                        .system(
+                            size: 38,
+                            weight: .heavy
+                        )
+                    )
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                .yellow,
+                                .orange
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                
+                
+                
+                Text(gameEmoji)
+                    .font(.system(size: 45))
+                
+                
+                
+                Text(mode.rawValue)
+                    .font(.title2)
+                    .bold()
+                    .foregroundColor(.white)
+                
+                
+                
+                
+                // MARK: Score Card
+                
+                VStack(spacing: 10) {
+                    
+                    Text("⭐ Final Score")
+                        .font(.headline)
+                        .foregroundColor(
+                            .white.opacity(0.7)
+                        )
+                    
+                    
+                    Text("\(score)")
+                        .font(
+                            .system(
+                                size: 60,
+                                weight: .heavy
+                            )
+                        )
+                        .foregroundColor(.yellow)
+                    
+                }
                 .frame(
                     maxWidth: .infinity
                 )
-            }
-            .buttonStyle(
-                .borderedProminent
-            )
-            
-            
-            
-            Button {
-                
-                dismiss()
-                
-            } label: {
-                
-                Text(
-                    "Back To Home"
+                .padding()
+                .background(
+                    .ultraThinMaterial
                 )
+                .cornerRadius(30)
+                .overlay(
+                    RoundedRectangle(
+                        cornerRadius: 30
+                    )
+                    .stroke(
+                        Color.yellow.opacity(0.4),
+                        lineWidth: 2
+                    )
+                )
+                
+                
+                
+                
+                // MARK: Share Button
+                
+                ShareLink(
+                    item: shareText
+                ) {
+                    
+                    HStack {
+                        
+                        Image(
+                            systemName:
+                                "square.and.arrow.up"
+                        )
+                        
+                        Text("Share Score")
+                            .fontWeight(.bold)
+                        
+                    }
+                    .frame(
+                        maxWidth: .infinity
+                    )
+                    .padding()
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                .cyan,
+                                .blue
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .foregroundColor(.white)
+                    .cornerRadius(18)
+                    
+                }
+                
+                
+                
+                
+                // MARK: Restart Button
+                
+                Button {
+                    
+                    restartAction()
+                    
+                } label: {
+                    
+                    HStack {
+                        
+                        Text("🔄")
+                        
+                        Text("Play Again")
+                            .fontWeight(.bold)
+                    }
+                    .frame(
+                        maxWidth: .infinity
+                    )
+                    .padding()
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                .orange,
+                                .yellow
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .foregroundColor(.black)
+                    .cornerRadius(18)
+                    
+                }
+                
+                
+                
+                
+                Button {
+                    
+                    dismiss()
+                    
+                } label: {
+                    
+                    Text("🏠 Back To Home")
+                        .foregroundColor(
+                            .white.opacity(0.8)
+                        )
+                }
+                
             }
+            .padding()
+            
         }
-        .padding()
+        
         .onAppear {
+            
+            animate = true
             
             saveSession()
         }
@@ -109,6 +245,24 @@ struct ResultView: View {
         """
         I just scored \(score) on \(mode.rawValue) - beat that!
         """
+    }
+    
+    
+    
+    
+    private var gameEmoji: String {
+        
+        switch mode {
+            
+        case .tapFrenzy:
+            return "⚡"
+            
+        case .lightItUp:
+            return "💡"
+            
+        case .quizRush:
+            return "❓"
+        }
     }
     
     
