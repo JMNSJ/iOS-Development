@@ -18,7 +18,6 @@ final class LightItUpVM: ObservableObject {
     private var cardTimer: Timer?
     private var gameTimer: Timer?
 
-    // Held so endGame() can save a session no matter which path triggers it.
     private weak var sessionStore: SessionStore?
     private weak var locationService: LocationService?
     private var hasSavedSession = false
@@ -140,7 +139,7 @@ final class LightItUpVM: ObservableObject {
     }
 }
 
-// MARK: - Game View
+/// MARK: - Game View
 
 struct LightItUpView: View {
 
@@ -149,95 +148,437 @@ struct LightItUpView: View {
     @EnvironmentObject var sessionStore: SessionStore
     @EnvironmentObject var locationService: LocationService
 
+    @State private var animateBackground = false
+    @State private var tappedCard: Int? = nil
+
+
     var body: some View {
 
-        VStack(spacing: 20) {
+        ZStack {
 
-            Text("💡 Light It Up")
-                .font(.largeTitle)
-                .bold()
+            // MARK: Dark Animated Background
 
-            HStack {
-                Text("Score: \(vm.score)")
-                Spacer()
-                Text("Time: \(vm.timeRemaining)")
-            }
-            .padding(.horizontal)
+            LinearGradient(
+                colors: [
+                    Color.black,
+                    Color.blue.opacity(0.5),
+                    Color.purple.opacity(0.6)
+                ],
+                startPoint: animateBackground ? .topLeading : .bottomTrailing,
+                endPoint: animateBackground ? .bottomTrailing : .topLeading
+            )
+            .ignoresSafeArea()
+            .animation(
+                .easeInOut(duration: 5)
+                .repeatForever(autoreverses: true),
+                value: animateBackground
+            )
 
-            Text("High Score: \(vm.highScore)")
-                .font(.headline)
 
-            // MARK: - Current Location Display
-            Label(locationService.displayString, systemImage: "location.fill")
-                .font(.caption)
-                .foregroundColor(.secondary)
 
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible()), count: 3),
-                spacing: 20
-            ) {
-                ForEach(0..<3, id: \.self) { index in
-                    cardView(isActive: vm.activeCard == index)
-                        .onTapGesture {
-                            vm.handleTap(index)
-                        }
+            VStack(spacing: 25) {
+
+
+                // MARK: Title
+
+                VStack(spacing: 8) {
+
+                    Text("💡 Light It Up")
+                        .font(.system(size: 38, weight: .heavy))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    .yellow,
+                                    .orange
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+
+
+                    Text("Tap the glowing light ✨")
+                        .foregroundColor(.white.opacity(0.7))
                 }
-            }
-            .padding()
 
-            if vm.gameOver {
-                VStack(spacing: 15) {
-                    Text("Game Over")
-                        .font(.title)
-                        .bold()
 
-                    Text("Final Score: \(vm.score)")
 
-                    Button {
-                        vm.restartGame(sessionStore: sessionStore, locationService: locationService)
-                        locationService.recordWhenAvailable(gameName: "Light It Up")
-                    } label: {
-                        Text("Restart")
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
+
+                // MARK: Stats Cards
+
+                HStack(spacing: 12) {
+
+                    infoCard(
+                        emoji: "⭐",
+                        title: "Score",
+                        value: "\(vm.score)"
+                    )
+
+
+                    infoCard(
+                        emoji: "⏳",
+                        title: "Time",
+                        value: "\(vm.timeRemaining)"
+                    )
+
+
+                    infoCard(
+                        emoji: "🏆",
+                        title: "Best",
+                        value: "\(vm.highScore)"
+                    )
+                }
+
+
+
+
+                // MARK: Location
+
+                Label(
+                    locationService.displayString,
+                    systemImage: "location.fill"
+                )
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+
+
+
+
+
+                // MARK: Cards
+
+                LazyVGrid(
+                    columns: Array(
+                        repeating: GridItem(.flexible()),
+                        count: 3
+                    ),
+                    spacing: 20
+                ) {
+
+                    ForEach(0..<3, id: \.self) { index in
+
+
+                        cardView(
+                            isActive: vm.activeCard == index
+                        )
+
+                        .scaleEffect(
+                            tappedCard == index ? 0.85 : 1
+                        )
+
+
+                        .onTapGesture {
+
+
+                            withAnimation(
+                                .spring(
+                                    response: 0.3,
+                                    dampingFraction: 0.5
+                                )
+                            ) {
+
+                                tappedCard = index
+                            }
+
+
+                            vm.handleTap(index)
+
+
+
+                            DispatchQueue.main.asyncAfter(
+                                deadline: .now() + 0.15
+                            ) {
+
+                                withAnimation {
+
+                                    tappedCard = nil
+                                }
+                            }
+                        }
                     }
                 }
                 .padding()
+
+
+
+
+                // MARK: Game Over
+
+                if vm.gameOver {
+
+
+                    VStack(spacing: 18) {
+
+
+                        Text("🎉 Game Over!")
+                            .font(.title)
+                            .bold()
+                            .foregroundColor(.white)
+
+
+
+                        Text("Final Score: \(vm.score)")
+                            .font(.headline)
+                            .foregroundColor(.yellow)
+
+
+
+                        Button {
+
+
+                            vm.restartGame(
+                                sessionStore: sessionStore,
+                                locationService: locationService
+                            )
+
+
+                            locationService.recordWhenAvailable(
+                                gameName: "Light It Up"
+                            )
+
+
+                        } label: {
+
+
+                            Text("🔄 Restart")
+
+
+                                .fontWeight(.bold)
+
+                                .frame(
+                                    maxWidth: .infinity
+                                )
+
+                                .padding()
+
+
+                                .background(
+                                    LinearGradient(
+                                        colors: [
+                                            .orange,
+                                            .yellow
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+
+
+                                .foregroundColor(.black)
+
+                                .cornerRadius(18)
+                        }
+
+                    }
+
+                    .padding()
+
+                    .background(
+                        .ultraThinMaterial
+                    )
+
+                    .cornerRadius(25)
+
+                    .padding()
+
+                    .transition(
+                        .scale
+                        .combined(with: .opacity)
+                    )
+                }
+
+
+                Spacer()
+
             }
+
+            .padding()
+
         }
-        .padding()
+
+
+
 
         .onAppear {
+
+
+            animateBackground = true
+
+
             locationService.startUpdating()
-            locationService.recordWhenAvailable(gameName: "Light It Up")
-            vm.startGame(sessionStore: sessionStore, locationService: locationService)
+
+
+            locationService.recordWhenAvailable(
+                gameName: "Light It Up"
+            )
+
+
+            vm.startGame(
+                sessionStore: sessionStore,
+                locationService: locationService
+            )
+
         }
+
+
+
 
         .onDisappear {
+
             vm.stopTimers()
+
         }
     }
 
-    // MARK: - Card View
 
-    private func cardView(isActive: Bool) -> some View {
-        RoundedRectangle(cornerRadius: 20)
-            .fill(isActive ? Color.yellow : Color.gray.opacity(0.3))
-            .frame(height: 150)
-            .overlay {
-                Image(systemName: isActive ? "lightbulb.fill" : "lightbulb")
-                    .font(.system(size: 40))
-                    .foregroundColor(isActive ? .orange : .gray)
-            }
-            .shadow(radius: 5)
+
+
+    // MARK: Info Card
+
+    private func infoCard(
+        emoji: String,
+        title: String,
+        value: String
+    ) -> some View {
+
+
+        VStack(spacing: 5) {
+
+
+            Text(emoji)
+                .font(.title2)
+
+
+
+            Text(value)
+                .font(.headline)
+                .foregroundColor(.white)
+
+
+
+            Text(title)
+                .font(.caption)
+                .foregroundColor(
+                    .white.opacity(0.7)
+                )
+
+
+        }
+
+        .frame(
+            width: 90,
+            height: 80
+        )
+
+        .background(
+            .ultraThinMaterial
+        )
+
+        .cornerRadius(20)
+
     }
-}
 
-#Preview {
-    LightItUpView()
-        .environmentObject(SessionStore())
-        .environmentObject(LocationService())
+
+
+
+    // MARK: Card UI
+
+    private func cardView(
+        isActive: Bool
+    ) -> some View {
+
+
+        RoundedRectangle(
+            cornerRadius: 22
+        )
+
+
+        .fill(
+
+            isActive
+
+            ?
+
+            LinearGradient(
+                colors: [
+                    .yellow,
+                    .orange
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+
+            :
+
+            LinearGradient(
+                colors: [
+                    Color.gray.opacity(0.4),
+                    Color.black.opacity(0.5)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+        )
+
+
+
+        .frame(
+            height: 150
+        )
+
+
+
+        .overlay {
+
+
+            Image(
+                systemName:
+                    isActive
+                ? "lightbulb.fill"
+                : "lightbulb"
+            )
+
+
+            .font(
+                .system(size: 45)
+            )
+
+
+            .foregroundColor(
+                isActive
+                ? .white
+                : .gray
+            )
+
+
+            .shadow(
+                color:
+                    isActive
+                ? .yellow
+                : .clear,
+
+                radius: 20
+            )
+
+        }
+
+
+
+        .shadow(
+            color:
+                isActive
+            ? .yellow.opacity(0.8)
+            : .clear,
+
+            radius: 25
+        )
+
+
+        .animation(
+            .spring(),
+            value: isActive
+        )
+    }
 }

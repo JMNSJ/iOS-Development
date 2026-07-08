@@ -98,8 +98,7 @@ struct MapTab: View {
             }
         }
 
-        // Center on the user as soon as a fix becomes available, if we
-        // haven't already had a saved-location to center on.
+      
         .onChange(of: locationService.currentLocation) { _, newValue in
             guard let newValue, locationService.savedLocations.isEmpty, hasSetInitialPosition else { return }
             withAnimation {
@@ -128,7 +127,7 @@ struct MapTab: View {
     private func moveToCurrentLocation() {
         guard let location = locationService.currentLocation else {
             showLocationUnavailableAlert = true
-            // Try to nudge things along in case updates haven't started yet.
+
             if locationService.authorizationStatus == .authorizedWhenInUse
                 || locationService.authorizationStatus == .authorizedAlways {
                 locationService.startUpdating()
